@@ -9,21 +9,23 @@ from src.sound_manager import SoundManager
     This is the main class for the game.
     It handles the main game loop and the game state.
 """
+
 class DuckHunt:
-    def __init__(self, screensize=(1200, 768)):
+
+    def __init__(self, screensize = (1200, 768)):
         self.verbose = False
         pygame.init()
         self.black, self.white = (0,0,0), (255,255,255)
         self.screensize = screensize
-        self.screenrect = pygame.Rect(0,0,self.screensize[0], self.screensize[1])
+        self.screenrect = pygame.Rect(0,0, self.screensize[0], self.screensize[1])
         pygame.display.set_caption("Duck Hunt")
         self.screen = pygame.display.set_mode(self.screensize)
         self.images = ImageManager()
         self.sounds = SoundManager()
         self.mouse_position = (0,0)
         self.click_position = (-100, -100)
-        self.shells, self.capacity, self.reloding_time = 3, 3, 0
-        self.is_reloding, self.is_game_over = False, False
+        self.shells, self.capacity, self.reloading_time = 3, 3, 0
+        self.is_reloading, self.is_game_over = False, False
         self.y_move = 0
         self.new_game()
 
@@ -46,20 +48,23 @@ class DuckHunt:
             self.new_duck()
         elif not self.is_game_over:
             self.move_duck()
-        self.handle_reloding()
+        self.handle_reloading()
 
-        self.screen.blit(pygame.transform.scale(self.images.background, self.screensize, (0, 0)))
+        self.screen.blit(pygame.transform.scale(self.images.background, self.screensize), (0, 0))
         if self.is_game_over:
             self.screen.blit(self.images.dog, self.images.dog_rect)
         else:
             self.screen.blit(self.images.duck, self.images.duck_rect)
-        self.screen.blit((self.images.sight, self.images.sight_rect))
-        self.screen.blit(pygame.font.SysFont("Avenir", 36). render(
-            f'Shells: {"I" * self.shells: 3s}   Points: {self.score}', True, self.white),
-            (self.screensize[0] * .55, self.screen[1] * 0.9
+        self.screen.blit(self.images.sight, self.images.sight_rect)
+        self.screen.blit(pygame.font.SysFont("Avenir", 36).render(
+            f"Shells: {'I' * self.shells:3s}   Points: {self.score}", True, self.white),
+            (self.screensize[0] * .55, self.screensize[1] * 0.9
         ))
+
         self.screen.convert_alpha()
         pygame.display.update()
+
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -72,35 +77,35 @@ class DuckHunt:
                 self.click_position = pygame.mouse.get_pos()
                 self.fire()
             elif event.type == KEYDOWN:
-                if pygame.key.name(event.key) == 'r':
-                    self.is_reloding = True
-                    self.reloding_time = 20 * self.capacity - (20 * self.shells)
-                elif pygame.key.name(event.key) == 'space' and self.is_game_over:
+                if pygame.key.name(event.key) == "r":
+                    self.is_reloading = True
+                    self.reloading_time = 20 * self.capacity - (20 * self.shells)
+                elif pygame.key.name(event.key) == "space" and self.is_game_over:
                     self.new_game()
+
     def fire(self):
-        if self.shells > 0 and not self.is_reloding:
+        if self.shells > 0 and not self.is_reloading:
             self.sounds.blast.play()
             self.shells -= 1
             if self.images.duck_rect.colliderect(self.images.sight_rect):
                 self.score += 1
                 self.duck_velocity += 1
                 self.new_duck()
-
         else:
             self.sounds.click.play()
 
-    def handle_reloding(self):
-        if self.is_reloding:
-            if self.reloding_time > 0:
-                self.reloding_time -= 1
+    def handle_reloading(self):
+        if self.is_reloading:
+            if self.reloading_time > 0:
+                self.reloading_time -= 1
             else:
                 self.sounds.racking.play()
                 self.shells = self.capacity
-                self.is_reloding = False
+                self.is_reloading = False
 
     def new_duck(self):
         self.is_alive = True
-        x, y = 0,0
+        x, y = 0, 0
         if random.randint(0, 100) % 2 == 0:
             x = int(self.screensize[0] * 0.2)
             self.duck_angle = -random.randint(5, 35)
@@ -108,20 +113,19 @@ class DuckHunt:
             x = int(self.screensize[0] * 0.8)
             self.duck_angle = -random.randint(145, 175)
         y = int(self.screensize[1] * 0.66)
-        self.images.duck_rect.center = x,y
+        self.images.duck_rect.center = x, y
         if self.verbose:
             print("Duck center: ", self.images.duck_rect.center)
-
 
     def move_duck(self):
         x = self.images.duck_rect.center[0] + self.duck_velocity * math.cos(math.radians(self.duck_angle))
         y = self.images.duck_rect.centery
-        self.y_move += self.duck_velocity * math.sin(math.radians(self.duck_angle)) # coordinate has to be integers
+        self.y_move += self.duck_velocity * math.sin(math.radians(self.duck_angle)) # coordinate has to be in integers
         if self.y_move <= -1:
-            y += self.y_move //1
+            y+=self.y_move // 1
             self.y_move %= 1
 
-        self.images.duck_rect.center = x , y
+        self.images.duck_rect.center = x, y
         if not self.screenrect.colliderect(self.images.duck_rect):
             self.lives -= 1
             if self.lives > 0 and not self.is_game_over:
@@ -137,10 +141,12 @@ class DuckHunt:
         self.sounds.gameover.play()
         self.is_game_over = True
 
+
     def run(self):
         while True:
             self.loop()
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     game = DuckHunt()
     game.run()

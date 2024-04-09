@@ -12,3 +12,4 @@ class SoundManager:
         self.hit = pygame.mixer.Sound('sounds/hit.wav')
         self.blast = pygame.mixer.Sound('sounds/blast.mp3')
         self.gameover = pygame.mixer.Sound('sounds/gameover.wav')
+        self.racking = pygame.mixer.Sound('sounds/racking.wav')
